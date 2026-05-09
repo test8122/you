@@ -5,13 +5,16 @@
 
     <title>YouTube Downloader</title>
 
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <style>
 
         body{
             background:#111;
             color:white;
             font-family:Arial;
-            padding:30px;
+            padding:25px;
         }
 
         h1{
@@ -19,28 +22,58 @@
         }
 
         input{
-            width:300px;
-            padding:10px;
+
+            width:90%;
+            max-width:500px;
+
+            padding:12px;
+
             border:none;
-            border-radius:5px;
+            border-radius:6px;
+
+            margin-bottom:10px;
         }
 
         button{
-            padding:10px;
+
+            padding:12px 20px;
+
             border:none;
+            border-radius:6px;
+
             cursor:pointer;
-            border-radius:5px;
+
+            font-size:16px;
         }
 
         #result{
-            margin-top:20px;
+            margin-top:25px;
         }
 
         a{
+
             display:block;
-            margin-top:10px;
+
+            margin-top:15px;
+
             color:#00aaff;
+
             text-decoration:none;
+
+            word-break:break-all;
+        }
+
+        img{
+
+            max-width:300px;
+
+            border-radius:10px;
+
+            margin-top:20px;
+        }
+
+        .error{
+            color:red;
         }
 
     </style>
@@ -56,6 +89,8 @@
     id="url"
     placeholder="Paste YouTube URL"
 >
+
+<br>
 
 <button onclick="getInfo()">
     Get Links
@@ -78,7 +113,9 @@ async function getInfo(){
     try{
 
         let response = await fetch(
+
             "/info?url=" +
+
             encodeURIComponent(videoUrl)
         );
 
@@ -86,67 +123,100 @@ async function getInfo(){
 
         console.log(data);
 
+        // =====================================
         // BACKEND ERROR
+        // =====================================
+
         if(data.error){
 
-            result.innerHTML =
-                "Error: " + data.error;
+            result.innerHTML = `
+                <div class="error">
+                    Error: ${data.error}
+                </div>
+            `;
 
             return;
         }
 
+        // =====================================
         // VIDEO LINK
-        let videoLink = "";
+        // =====================================
+
+        let videoHTML = "";
 
         if(data.video.url){
 
-            videoLink = `
-                <a href="${data.video.url}" target="_blank">
-                    Download Video (${data.video.quality}p)
+            videoHTML = `
+
+                <a
+                    href="${data.video.url}"
+                    target="_blank"
+                >
+                    Download Video
+                    (${data.video.quality}p
+                    ${data.video.ext})
                 </a>
             `;
 
         }else{
 
-            videoLink =
+            videoHTML =
                 "No combined video found";
         }
 
+        // =====================================
         // AUDIO LINK
-        let audioLink = "";
+        // =====================================
+
+        let audioHTML = "";
 
         if(data.audio.url){
 
-            audioLink = `
-                <a href="${data.audio.url}" target="_blank">
+            audioHTML = `
+
+                <a
+                    href="${data.audio.url}"
+                    target="_blank"
+                >
                     Download M4A Audio
+                    (${data.audio.bitrate} kbps)
                 </a>
             `;
 
         }else{
 
-            audioLink =
+            audioHTML =
                 "No M4A audio found";
         }
+
+        // =====================================
+        // FINAL HTML
+        // =====================================
 
         result.innerHTML = `
 
             <h2>${data.title}</h2>
 
-            ${videoLink}
+            <img src="${data.thumbnail}">
 
             <br>
 
-            ${audioLink}
+            ${videoHTML}
 
+            <br>
+
+            ${audioHTML}
         `;
 
     }catch(err){
 
         console.log(err);
 
-        result.innerHTML =
-            "Frontend Error: " + err;
+        result.innerHTML = `
+            <div class="error">
+                Frontend Error: ${err}
+            </div>
+        `;
     }
 }
 
