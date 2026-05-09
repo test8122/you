@@ -1,23 +1,35 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>YouTube Downloader</title>
 
     <style>
 
         body{
+            background:#111;
+            color:white;
             font-family:Arial;
             padding:30px;
+        }
+
+        h1{
+            margin-bottom:20px;
         }
 
         input{
             width:300px;
             padding:10px;
+            border:none;
+            border-radius:5px;
         }
 
         button{
             padding:10px;
+            border:none;
             cursor:pointer;
+            border-radius:5px;
         }
 
         #result{
@@ -27,11 +39,14 @@
         a{
             display:block;
             margin-top:10px;
+            color:#00aaff;
+            text-decoration:none;
         }
 
     </style>
 
 </head>
+
 <body>
 
 <h1>YouTube Downloader</h1>
@@ -50,7 +65,7 @@
 
 <script>
 
-async function getInfo() {
+async function getInfo(){
 
     let videoUrl =
         document.getElementById("url").value;
@@ -60,43 +75,78 @@ async function getInfo() {
 
     result.innerHTML = "Loading...";
 
-    try {
+    try{
 
         let response = await fetch(
             "/info?url=" +
             encodeURIComponent(videoUrl)
         );
 
-        // SHOW STATUS
-        console.log("STATUS:", response.status);
-
         let data = await response.json();
 
-        // SHOW RESPONSE
         console.log(data);
+
+        // BACKEND ERROR
+        if(data.error){
+
+            result.innerHTML =
+                "Error: " + data.error;
+
+            return;
+        }
+
+        // VIDEO LINK
+        let videoLink = "";
+
+        if(data.video.url){
+
+            videoLink = `
+                <a href="${data.video.url}" target="_blank">
+                    Download Video (${data.video.quality}p)
+                </a>
+            `;
+
+        }else{
+
+            videoLink =
+                "No combined video found";
+        }
+
+        // AUDIO LINK
+        let audioLink = "";
+
+        if(data.audio.url){
+
+            audioLink = `
+                <a href="${data.audio.url}" target="_blank">
+                    Download M4A Audio
+                </a>
+            `;
+
+        }else{
+
+            audioLink =
+                "No M4A audio found";
+        }
 
         result.innerHTML = `
 
             <h2>${data.title}</h2>
 
-            <a href="${data.video.url}" target="_blank">
-                Download Video (${data.video.quality}p)
-            </a>
+            ${videoLink}
 
-            <br><br>
+            <br>
 
-            <a href="${data.audio.url}" target="_blank">
-                Download Audio
-            </a>
+            ${audioLink}
 
         `;
 
-    } catch (err) {
+    }catch(err){
 
         console.log(err);
 
         result.innerHTML =
-            "ERROR: " + err;
+            "Frontend Error: " + err;
     }
 }
 
