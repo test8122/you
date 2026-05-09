@@ -5,75 +5,19 @@
 
     <title>YouTube Downloader</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
     <style>
 
         body{
             background:#111;
             color:white;
             font-family:Arial;
-            padding:25px;
+            padding:30px;
         }
 
-        h1{
-            margin-bottom:20px;
-        }
+        input, select, button{
 
-        input{
-
-            width:90%;
-            max-width:500px;
-
-            padding:12px;
-
-            border:none;
-            border-radius:6px;
-
-            margin-bottom:10px;
-        }
-
-        button{
-
-            padding:12px 20px;
-
-            border:none;
-            border-radius:6px;
-
-            cursor:pointer;
-
-            font-size:16px;
-        }
-
-        #result{
-            margin-top:25px;
-        }
-
-        a{
-
-            display:block;
-
-            margin-top:15px;
-
-            color:#00aaff;
-
-            text-decoration:none;
-
-            word-break:break-all;
-        }
-
-        img{
-
-            max-width:300px;
-
-            border-radius:10px;
-
-            margin-top:20px;
-        }
-
-        .error{
-            color:red;
+            padding:10px;
+            margin-top:10px;
         }
 
     </style>
@@ -84,143 +28,37 @@
 
 <h1>YouTube Downloader</h1>
 
-<input
-    type="text"
-    id="url"
-    placeholder="Paste YouTube URL"
->
+<form action="/download" method="POST">
 
-<br>
+    <input
+        type="text"
+        name="url"
+        placeholder="Paste YouTube URL"
+        required
+        style="width:300px;"
+    >
 
-<button onclick="getInfo()">
-    Get Links
-</button>
+    <br>
 
-<div id="result"></div>
+    <select name="type">
 
-<script>
+        <option value="video">
+            360p Video With Audio
+        </option>
 
-async function getInfo(){
+        <option value="audio">
+            Best M4A Audio
+        </option>
 
-    let videoUrl =
-        document.getElementById("url").value;
+    </select>
 
-    let result =
-        document.getElementById("result");
+    <br>
 
-    result.innerHTML = "Loading...";
+    <button type="submit">
+        Download
+    </button>
 
-    try{
-
-        let response = await fetch(
-
-            "/info?url=" +
-
-            encodeURIComponent(videoUrl)
-        );
-
-        let data = await response.json();
-
-        console.log(data);
-
-        // =====================================
-        // BACKEND ERROR
-        // =====================================
-
-        if(data.error){
-
-            result.innerHTML = `
-                <div class="error">
-                    Error: ${data.error}
-                </div>
-            `;
-
-            return;
-        }
-
-        // =====================================
-        // VIDEO LINK
-        // =====================================
-
-        let videoHTML = "";
-
-        if(data.video.url){
-
-            videoHTML = `
-
-                <a
-                    href="${data.video.url}"
-                    target="_blank"
-                >
-                    Download Video
-                    (${data.video.quality}p
-                    ${data.video.ext})
-                </a>
-            `;
-
-        }else{
-
-            videoHTML =
-                "No combined video found";
-        }
-
-        // =====================================
-        // AUDIO LINK
-        // =====================================
-
-        let audioHTML = "";
-
-        if(data.audio.url){
-
-            audioHTML = `
-
-                <a
-                    href="${data.audio.url}"
-                    target="_blank"
-                >
-                    Download M4A Audio
-                    (${data.audio.bitrate} kbps)
-                </a>
-            `;
-
-        }else{
-
-            audioHTML =
-                "No M4A audio found";
-        }
-
-        // =====================================
-        // FINAL HTML
-        // =====================================
-
-        result.innerHTML = `
-
-            <h2>${data.title}</h2>
-
-            <img src="${data.thumbnail}">
-
-            <br>
-
-            ${videoHTML}
-
-            <br>
-
-            ${audioHTML}
-        `;
-
-    }catch(err){
-
-        console.log(err);
-
-        result.innerHTML = `
-            <div class="error">
-                Frontend Error: ${err}
-            </div>
-        `;
-    }
-}
-
-</script>
+</form>
 
 </body>
 </html>
