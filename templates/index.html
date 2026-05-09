@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Downloader</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            padding:30px;
+        }
+
+        input{
+            width:300px;
+            padding:10px;
+        }
+
+        button{
+            padding:10px;
+            cursor:pointer;
+        }
+
+        #result{
+            margin-top:20px;
+        }
+
+        a{
+            display:block;
+            margin-top:10px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<h1>YouTube Downloader</h1>
+
+<input
+    type="text"
+    id="url"
+    placeholder="Paste YouTube URL"
+>
+
+<button onclick="getInfo()">
+    Get Links
+</button>
+
+<div id="result"></div>
+
+<script>
+
+async function getInfo(){
+
+    let videoUrl =
+        document.getElementById("url").value;
+
+    let response = await fetch(
+        "/info?url=" +
+        encodeURIComponent(videoUrl)
+    );
+
+    let data = await response.json();
+
+    document.getElementById("result").innerHTML = `
+
+        <h2>${data.title}</h2>
+
+        <a href="${data.video.url}" target="_blank">
+            Download Video (${data.video.quality}p)
+        </a>
+
+        <a href="${data.audio.url}" target="_blank">
+            Download M4A Audio
+        </a>
+
+    `;
+}
+
+</script>
+
+</body>
+</html>
