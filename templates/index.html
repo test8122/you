@@ -47,34 +47,56 @@
 </button>
 
 <div id="result"></div>
-
 <script>
 
-async function getInfo(){
+async function getInfo() {
 
     let videoUrl =
         document.getElementById("url").value;
 
-    let response = await fetch(
-        "/info?url=" +
-        encodeURIComponent(videoUrl)
-    );
+    let result =
+        document.getElementById("result");
 
-    let data = await response.json();
+    result.innerHTML = "Loading...";
 
-    document.getElementById("result").innerHTML = `
+    try {
 
-        <h2>${data.title}</h2>
+        let response = await fetch(
+            "/info?url=" +
+            encodeURIComponent(videoUrl)
+        );
 
-        <a href="${data.video.url}" target="_blank">
-            Download Video (${data.video.quality}p)
-        </a>
+        // SHOW STATUS
+        console.log("STATUS:", response.status);
 
-        <a href="${data.audio.url}" target="_blank">
-            Download M4A Audio
-        </a>
+        let data = await response.json();
 
-    `;
+        // SHOW RESPONSE
+        console.log(data);
+
+        result.innerHTML = `
+
+            <h2>${data.title}</h2>
+
+            <a href="${data.video.url}" target="_blank">
+                Download Video (${data.video.quality}p)
+            </a>
+
+            <br><br>
+
+            <a href="${data.audio.url}" target="_blank">
+                Download Audio
+            </a>
+
+        `;
+
+    } catch (err) {
+
+        console.log(err);
+
+        result.innerHTML =
+            "ERROR: " + err;
+    }
 }
 
 </script>
