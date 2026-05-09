@@ -33,8 +33,7 @@ def download():
 
         ydl_opts = {
 
-            'format':
-            'best[height<=360][vcodec!=none][acodec!=none]',
+            'format':'best',
 
             'outtmpl':
             'storage/downloads/%(title)s.%(ext)s',
