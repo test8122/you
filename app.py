@@ -1,170 +1,86 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import yt_dlp
+import os
 
 app = Flask(__name__)
 
-# =====================================================
+# Create download folder
+os.makedirs("storage/downloads", exist_ok=True)
+
+# ==========================================
 # HOME PAGE
-# =====================================================
+# ==========================================
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
-# =====================================================
-# API
-# =====================================================
+# ==========================================
+# DOWNLOAD
+# ==========================================
 
-@app.route("/info")
-def info():
+@app.route("/download", methods=["POST"])
+def download():
 
-    try:
+    video_url = request.form.get("url")
+    download_type = request.form.get("type")
 
-        video_url = request.args.get("url")
+    # ======================================
+    # VIDEO 360P WITH AUDIO
+    # ======================================
 
-        if not video_url:
-            return jsonify({
-                "error": "No URL provided"
-            })
-
-        # =================================================
-        # YT-DLP OPTIONS
-        # =================================================
+    if download_type == "video":
 
         ydl_opts = {
 
-            "quiet": True,
-            "noplaylist": True,
+            'format':
+            'best[height<=360][vcodec!=none][acodec!=none]',
 
-            # Better bypass for cloud hosting
-            "extractor_args": {
-                "youtube": {
-                    "player_client": [
-                        "android",
-                        "web"
-                    ]
-                }
-            },
+            'outtmpl':
+            'storage/downloads/%(title)s.%(ext)s',
 
-            # Fake browser headers
-            "http_headers": {
-                "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0 Safari/537.36"
-            }
+            'noplaylist': True
         }
 
-        # =================================================
-        # EXTRACT INFO
-        # =================================================
+    # ======================================
+    # BEST M4A AUDIO
+    # ======================================
+
+    elif download_type == "audio":
+
+        ydl_opts = {
+
+            'format':
+            'bestaudio[ext=m4a]',
+
+            'outtmpl':
+            'storage/downloads/%(title)s.%(ext)s',
+
+            'noplaylist': True
+        }
+
+    else:
+        return "Invalid option"
+
+    try:
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_url])
 
-            info = ydl.extract_info(
-                video_url,
-                download=False
-            )
-
-        # =================================================
-        # BEST FORMATS
-        # =================================================
-
-        best_combined = None
-        best_height = 0
-
-        best_audio = None
-        best_audio_bitrate = 0
-
-        for f in info.get("formats", []):
-
-            if not f.get("url"):
-                continue
-
-            # =============================================
-            # BEST VIDEO + AUDIO
-            # =============================================
-
-            if (
-                f.get("vcodec") != "none"
-                and f.get("acodec") != "none"
-            ):
-
-                height = f.get("height") or 0
-
-                if height > best_height:
-
-                    best_height = height
-                    best_combined = f
-
-            # =============================================
-            # BEST M4A AUDIO
-            # =============================================
-
-            if (
-                f.get("vcodec") == "none"
-                and f.get("acodec") != "none"
-                and f.get("ext") == "m4a"
-            ):
-
-                abr = f.get("abr") or 0
-
-                if abr > best_audio_bitrate:
-
-                    best_audio_bitrate = abr
-                    best_audio = f
-
-        # =================================================
-        # RESPONSE
-        # =================================================
-
-        return jsonify({
-
-            "title":
-                info.get("title", "Unknown Title"),
-
-            "thumbnail":
-                info.get("thumbnail", ""),
-
-            "video": {
-
-                "quality":
-                    best_combined.get("height")
-                    if best_combined else "Not Found",
-
-                "ext":
-                    best_combined.get("ext")
-                    if best_combined else "",
-
-                "url":
-                    best_combined.get("url")
-                    if best_combined else ""
-            },
-
-            "audio": {
-
-                "bitrate":
-                    best_audio.get("abr")
-                    if best_audio else "Not Found",
-
-                "ext":
-                    best_audio.get("ext")
-                    if best_audio else "",
-
-                "url":
-                    best_audio.get("url")
-                    if best_audio else ""
-            }
-
-        })
+        return """
+        <h2>Download Completed</h2>
+        <a href="/">Back</a>
+        """
 
     except Exception as e:
 
-        return jsonify({
-            "error": str(e)
-        })
+        return f"""
+        <h2>Error</h2>
+        <p>{e}</p>
+        <a href="/">Back</a>
+        """
 
-# =====================================================
+# ==========================================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run()
